@@ -169,30 +169,250 @@ void Server::quit_cmd(std::string cmd, int index)
             return;
         }
         std::vector<std::string>  splited =  split(cmd, ' '); 
-        if (splited.size() !=2)
+        if (splited.size() < 2 || splited.size() > 4)
         {
             sendMyMsg(Clients[index]->getOnlineFD(),  "Incoorect parameters count\n");
             return ;
         } 
-        if(Channels.find(splited[1])==Channels.end())
+
+        if(splited[1][0]!='#' && splited[1][0]!='&')
         {
+            sendMyMsg(Clients[index]->getOnlineFD(),  ERR_BADCHANNELKEY(splited[1]));
+            return;
+        }
+        if(Channels.find(splited[1]) == Channels.end())
+        {
+            if(Clients[index]->ChannelCount >= 5)
+            {
+                sendMyMsg(Clients[index]->getOnlineFD(), ERR_TOOMANYCHANNELS(splited[1]));
+                return ;
+            }
+            if (Channels.size() >= 5)
+            {
+                sendMyMsg(Clients[index]->getOnlineFD(), ERR_CHANNELISFULL(splited[1]));
+                return ;
+            }
             Channels.insert(std::pair<std::string, Channel*>(splited[1], new Channel()));
-            Channels[splited[1]]->adminID = index;
+        
+
             (Channels[splited[1]]->clients).push_back(index);
             sendMyMsg(Clients[index]->getOnlineFD(), "You are created "+splited[1]+" channel\n");
+            Clients[index]->ChannelCount++;
+            if (splited.size() == 2)
+            {
+                Channels[splited[1]]->setPassword(splited[2]);
+                Channels[splited[1]]->mode_k = true;
+            }
          
+            if((Channels[splited[1]]->clients.size()==1)){
+                Channels[splited[1]]->adminIDs.push_back(index); // liany vmtacuma vor ka es masy, kgtnenq khanenq
+            }
         } 
         else 
         {
             for (unsigned long i = 0; i <  Channels[splited[1]]->clients.size(); i++)
             {
-                if(Channels[splited[1]]->clients[i]==index)
+                if(Channels[splited[1]]->clients[i] == index)
                 {
                     sendMyMsg(Clients[index]->getOnlineFD(), "You  already joined "+splited[1]+" channel\n");
                     return;
                 }
             }
-            (Channels[splited[1]]->clients).push_back(index);
-            sendMyMsg(Clients[index]->getOnlineFD(), "You joined "+splited[1]+" channel\n");
+            if(Channels[splited[1]]->clients.size() < Channels[splited[1]]->ChatLimit || Channels[splited[1]]->ChatLimit==0 )
+            {
+                (Channels[splited[1]]->clients).push_back(index);
+                sendMyMsg(Clients[index]->getOnlineFD(), "You joined "+splited[1]+" channel\n");
+                Clients[index]->ChannelCount++;
+            } 
+            else
+            {
+                sendMyMsg(Clients[index]->getOnlineFD(), ERR_CHANNELISFULL(splited[1]));
+            }
         }
   }
+
+
+
+void Server::kick_cmd(std::string cmd, int index)
+{
+    if(isClientFull(Clients[index]->getOnlineFD())==-1 )
+    {
+        sendMyMsg(Clients[index]->getOnlineFD(),  "You dont have account, the first register or log in\n");
+        return;
+    }
+    std::vector<std::string>  splited =  split(cmd, ' '); 
+    if (splited.size() !=3)
+    {
+        sendMyMsg(Clients[index]->getOnlineFD(),  "Incoorect parameters count\n");
+        return ;
+    } 
+
+    // nax petqa lini channely
+    if(Channels.find(splited[1]) == Channels.end())
+    {
+            sendMyMsg(Clients[index]->getOnlineFD(), ERR_NOSUCHCHANNEL(splited[1]));
+            return;
+    }
+    else
+    {  //??????
+        // if(Channels[splited[1]]->adminID!=index){
+        //         sendMyMsg(Clients[index]->getOnlineFD(), ERR_CHANOPRIVSNEEDED(splited[1]));
+        //     return;
+        // }
+
+for (std::map<int, Client*>::iterator it = Clients.begin(); it != Clients.end(); ++it) 
+ {
+        if( it->second->getNickname() == splited[2])
+        {
+            for(std::vector<int>::iterator it1 = Channels[splited[1]]->clients.begin(); it1 != Channels[splited[1]]->clients.end();++it1)
+            {
+                if(it->first == *it1)
+                {
+                    //??????????
+                    // if(Channels[splited[1]]->adminID==*it1)
+                    // {
+                    //        sendMyMsg(Clients[index]->getOnlineFD(),  ERR_CANTKICKADMIN(splited[1]));
+                    //        return;
+                    // }
+                    Channels[splited[1]]->clients.erase(it1);
+                    return;
+                }
+            }
+        }
+    }
+
+
+    
+        
+    } 
+}
+
+
+
+
+
+
+
+
+
+void Server::mode_cmd(std::string cmd, int index)
+{
+    if(isClientFull(Clients[index]->getOnlineFD())==-1 )
+    {
+        sendMyMsg(Clients[index]->getOnlineFD(),  "You dont have account, the first register or log in\n");
+        return;
+    }
+    std::vector<std::string>  splited =  split(cmd, ' '); 
+    if (splited.size() < 3)
+    {
+        sendMyMsg(Clients[index]->getOnlineFD(),  "Incoorect parameters count\n");
+        return ;
+    } 
+
+    if(Channels.find(splited[1]) == Channels.end())
+    {
+            sendMyMsg(Clients[index]->getOnlineFD(), ERR_NOSUCHCHANNEL(splited[1]));
+            return;
+    }
+    else
+    {
+
+
+   
+      
+        // if(Channels[splited[1]]->adminID != index){
+        //         sendMyMsg(Clients[index]->getOnlineFD(), ERR_CHANOPRIVSNEEDED(splited[1]));
+        //     return;
+        // }
+
+            for(std::vector<int>::iterator it = Channels[splited[1]]->adminIDs.begin(); it != Channels[splited[1]]->adminIDs.end();++it)
+            {
+                if(index==*it){
+
+    if (splited[2][0] == '+')
+    {
+        if (splited[2][1] == 'i')
+        {
+            if (!Channels[splited[1]]->mode_i)
+            {
+                Channels[splited[1]]->mode_i = true;
+                sendMyMsg(Clients[index]->getOnlineFD(), "+i mode is set");
+            }
+            else sendMyMsg(Clients[index]->getOnlineFD(), "Channel already Invite-only\n"); // heto petqa hanel elser-y
+            return ;
+        }
+        if (splited[2][1] == 't')
+        {
+            if (!Channels[splited[1]]->mode_i)
+            {
+                Channels[splited[1]]->mode_t = true;
+                sendMyMsg(Clients[index]->getOnlineFD(), "+t mode is set\n");
+            }
+            else sendMyMsg(Clients[index]->getOnlineFD(), "You cant chenge topic\n");
+            return ;
+        }
+        if (splited[2][1] == 'k') //MODE #42 +k oulu   
+        {
+            if (!Channels[splited[1]]->mode_k)
+            {
+                Channels[splited[1]]->mode_k = true;
+                if (splited.size() == 4)
+                {
+                    Channels[splited[1]]->setPassword(splited[3]);
+                    sendMyMsg(Clients[index]->getOnlineFD(), "+k mode is set\n");
+                }
+                if (splited.size() == 3 && Channels[splited[1]]->getPassword() == "")
+                        sendMyMsg(Clients[index]->getOnlineFD(), "You do not have a password, chouse one\n");
+            }
+            else sendMyMsg(Clients[index]->getOnlineFD(), "You cant chenge topic\n");
+            return ;
+        }
+        if (splited[2][1] == 'o')
+        {
+            
+            Channels[splited[1]]->adminIDs.push_back(index);
+        }
+        if (splited[2][1] == 'l')
+        {
+            if (splited.size() <=3 )
+                sendMyMsg(Clients[index]->getOnlineFD(), "Not enough parametors\n");
+            else 
+            {
+                unsigned long num = stoi(splited[3]);
+                if(Channels[splited[1]]->clients.size() > num)
+                {
+                    sendMyMsg(Clients[index]->getOnlineFD(), "CHannle's users count more then limit\n");
+                } 
+                else 
+                {
+
+                Channels[splited[1]]->ChatLimit = stoi(splited[3]);
+                }
+            }
+        }
+    }
+    else if (splited[2][0] == '-')
+    {   
+
+    }
+    else 
+    {
+        sendMyMsg(Clients[index]->getOnlineFD(), ERR_UNKNOWNMODE(splited[2]));
+        return ;
+    }
+
+                }
+                return;
+             
+
+            }
+  
+
+
+
+
+
+    
+        
+    } 
+}

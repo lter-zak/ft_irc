@@ -201,23 +201,28 @@ void Server::createServer()
                     }
                 }
                 
-                std::cout<<"-----------------------------------"<<std::endl;
-
+                std::cout<<"-----------------------------------------------"<<std::endl;
+                std::cout<<"| PASS | GUEST  | OFD | INDEX | CHCOUNT | NICK  "<<std::endl;
                 for (std::map<int, Client*>::iterator it = Clients.begin(); it != Clients.end(); ++it)
                 {
-                    std::cout<<it->second->getPass()<<" | "<<it->second->guest<<" | "<<it->second->getNickname()<<
-                    " | "<<it->second->getOnlineFD()<<" | "<< it->first<<std::endl;
+                    std::cout<<"| "<<it->second->getPass()<<"    | "<<it->second->guest<<"      | "<<it->second->getOnlineFD()<<"   | "<<it->first<< "     | "<<it->second->ChannelCount <<"       | "<<it->second->getNickname() <<std::endl;
                 }
             
-                std::cout<<"-----------------------------------"<<std::endl;
+                std::cout<<"----------------------------------------------- "<<std::endl;
                 std::cout<<"size=============>" <<Clients.size()<<std::endl;
                 std::cout<<"ChannelSize=============>" <<Channels.size()<<std::endl;
 
                 for (std::map<std::string, Channel*>::iterator it =  Channels.begin(); it !=  Channels.end(); ++it) 
                 {
+                     for(std::vector<int>::iterator it1 = Channels[it->first]->adminIDs.begin(); it1 != Channels[it->first]->adminIDs.end();++it1)
+                         {
+                         std::cout<<*it1<<" ";
+                            }
+                    std::cout<<" AID ]"<<"" <<"[Max "<<it->second->ChatLimit<<" ]";
                     std::cout<<it->first<<": ";
                         for (unsigned long i = 0; i < it->second->clients.size(); i++)
-                        std::cout<<it->second->clients[i]<<::std::endl;
+                        std::cout<<it->second->clients[i]<<" ";
+                    std::cout<<std::endl;
                 }
             //   system("leaks ./ircserv");
             }   
@@ -240,6 +245,11 @@ void Server::executeCommand(std::string cmd, int index)
         privmsg_cmd(cmd, onlineClientsFD(index));
     else if (!cmd.compare(0,4, "JOIN"))
         join_cmd(cmd, onlineClientsFD(index));   
+    else if (!cmd.compare(0,4, "KICK"))
+        kick_cmd(cmd, onlineClientsFD(index));
+    else if (!cmd.compare(0,4, "MODE"))
+        mode_cmd(cmd, onlineClientsFD(index));
+    std::cout<<"11111111111111111111"<<std::endl;
 }
 
 

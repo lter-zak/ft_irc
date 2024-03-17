@@ -7,6 +7,7 @@ Client::Client(std::string nickName, std::string userName, int fd)
     _nickname = nickName;
     _onlineFD = fd;
     guest = true;
+    ChannelCount = 0;
 }
 
 std::string Client::getNickname()

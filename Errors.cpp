@@ -35,8 +35,37 @@ const std::string ERR_USERISOFLINE(const std::string& command, const std::string
     return std::string("001 "  + command  +" : User " + name + " is ofline\n");
 }
 
+const std::string ERR_BADCHANNELKEY(const std::string& name)
+{
+    return std::string("475 " + name  + " : Cannot join channel (+k)\n");
+}
 
+const std::string ERR_CHANNELISFULL(const std::string& name)
+{
+    return std::string("471 <" + name  + ">  : Cannot join channel (+l)\n");
+}
 
+const std::string ERR_TOOMANYCHANNELS(const std::string& name)
+{
+    return std::string("405 <" + name  + ">  : You have joined too many channels\n");
+}
 
+const std::string ERR_NOSUCHCHANNEL(const std::string& name)
+{
+    return std::string("403 <" + name  + ">  :No such channel\n");
+}
 
+const std::string ERR_CHANOPRIVSNEEDED(const std::string& name)
+{
+    return std::string("482 <" + name  + "> :You're not channel operator\n");
+}
 
+const std::string ERR_CANTKICKADMIN(const std::string& name)
+{
+    return std::string("002 <" + name  + "> : You are admin, you cant kick yourself from channel\n");
+}
+
+const std::string ERR_UNKNOWNMODE(const std::string& name)
+{
+    return std::string("472  <" + name  + "> : is unknown mode char to me\n");
+}

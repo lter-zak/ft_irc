@@ -14,6 +14,7 @@ class Client
         bool _pass;
     public:
         Client(std::string, std::string, int fd);
+        int ChannelCount;
         bool guest;
         std::string getUsername();
         void setUsername(std::string);

@@ -17,6 +17,7 @@
 #include "Errors.hpp"
 #include <map>
 
+#include <stdlib.h>
 #define TRUE   1  
 #define FALSE  0  
 
@@ -51,6 +52,9 @@ static void signalHandler(int signal);
         void quit_cmd(std::string cmd, int index);
         void privmsg_cmd(std::string cmd, int index);
         void join_cmd(std::string cmd, int index);
+        void kick_cmd(std::string cmd, int index);
+        void mode_cmd(std::string cmd, int index);
+         
         int onlineClientsFD(int index);
         int isClientFull(int index);
         void createOrRegister(int index, int fd);
